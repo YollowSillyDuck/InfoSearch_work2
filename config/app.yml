@@ -1,0 +1,2 @@
+mysql:
+  dsn: "Luna:123456789a@tcp(127.0.0.1:3307)/gin_chat"
