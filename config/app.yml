@@ -1,2 +1,6 @@
 mysql:
   dsn: "Luna:123456789a@tcp(127.0.0.1:3307)/gin_chat"
+deepseek:
+  api_url: "https://api.deepseek.com/chat/completions"
+  api_key: "sk-cd444670f0d94113bce21e46897f22ee"
+  model: "deepseek-v4-pro"

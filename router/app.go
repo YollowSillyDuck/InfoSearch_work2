@@ -22,6 +22,7 @@ func Router() *gin.Engine {
 		searchGroup.GET("/documents", controller.SearchDocuments)
 		searchGroup.POST("/documents", controller.CreateDocument)
 		searchGroup.GET("/documents/:id", controller.GetDocument)
+		searchGroup.GET("/documents/:id/Extract", controller.ExtractDocument)
 		searchGroup.GET("/tags", controller.GetTags)
 		searchGroup.GET("/history", controller.GetSearchHistory)
 	}
