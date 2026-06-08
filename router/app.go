@@ -24,6 +24,10 @@ func Router() *gin.Engine {
 		searchGroup.GET("/documents/:id", controller.GetDocument)
 		searchGroup.GET("/tags", controller.GetTags)
 		searchGroup.GET("/history", controller.GetSearchHistory)
+		
+		// 新增以下两个路由，它们必须在 searchGroup 的作用域内，且在最终闭合括号之前
+		searchGroup.POST("/evaluate", controller.SubmitEvaluation)
+		searchGroup.GET("/metrics", controller.GetEvaluationMetrics)
 	}
 
 	return r

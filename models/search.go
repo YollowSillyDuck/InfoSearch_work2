@@ -30,3 +30,16 @@ type SearchRequest struct {
 	StartAt  time.Time `form:"start_at" json:"start_at"`
 	EndAt    time.Time `form:"end_at" json:"end_at"`
 }
+// models/search.go 追加以下代码
+
+type SearchEvaluation struct {
+	gorm.Model
+	Query      string `gorm:"type:varchar(256);not null" json:"query" binding:"required"`
+	DocumentID uint   `json:"document_id" binding:"required"`
+	IsRelevant bool   `json:"is_relevant"` // true为相关(准)，false为不相关(不准)
+	UserIP     string `gorm:"type:varchar(64)" json:"user_ip"`
+}
+
+func (SearchEvaluation) TableName() string {
+	return "search_evaluations"
+}

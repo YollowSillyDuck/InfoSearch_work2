@@ -217,3 +217,55 @@ func GetSearchHistory(c *gin.Context) {
 		},
 	})
 }
+// controller/api.go 追加以下代码
+
+// SubmitEvaluation 提交检索结果的人工评价接口
+func SubmitEvaluation(c *gin.Context) {
+	var eval models.SearchEvaluation
+	if err := c.ShouldBindJSON(&eval); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":   "Invalid parameters",
+			"details": err.Error(),
+		})
+		return
+	}
+
+	eval.UserIP = c.ClientIP()
+
+	if err := utils.DB.Create(&eval).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   "Failed to save evaluation",
+			"details": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Evaluation submitted successfully",
+		"data":    eval,
+	})
+}
+
+// GetEvaluationMetrics 获取人工评价的准确率统计接口
+func GetEvaluationMetrics(c *gin.Context) {
+	var total int64
+	var relevant int64
+
+	// 统计总评价数
+	utils.DB.Model(&models.SearchEvaluation{}).Count(&total)
+	// 统计被标记为相关的评价数
+	utils.DB.Model(&models.SearchEvaluation{}).Where("is_relevant = ?", true).Count(&relevant)
+
+	precision := 0.0
+	if total > 0 {
+		precision = float64(relevant) / float64(total)
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"data": gin.H{
+			"total_evaluated": total,
+			"relevant_count":  relevant,
+			"precision":       precision, // 准确率
+		},
+	})
+}

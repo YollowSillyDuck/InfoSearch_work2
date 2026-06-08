@@ -67,6 +67,7 @@ func InitMySQL() {
 		&models.Tag{},
 		&models.DocumentTag{},
 		&models.SearchRecord{},
+		&models.SearchEvaluation{}, // 新增这行，用于自动创建评价表
 	); err != nil {
 		fmt.Println("数据库自动迁移失败", err)
 		return
