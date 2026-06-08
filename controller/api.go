@@ -179,6 +179,68 @@ func GetDocument(c *gin.Context) {
 	})
 }
 
+// ExtractDocument 根据文档内容调用外部 AI 抽取信息
+func ExtractDocument(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid document ID",
+		})
+		return
+	}
+
+	var doc models.Document
+	if err := utils.DB.Preload("Tags").First(&doc, id).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			c.JSON(http.StatusNotFound, gin.H{
+				"error": "Document not found",
+			})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error":   "Failed to get document",
+				"details": err.Error(),
+			})
+		}
+		return
+	}
+
+	var tags []string
+	for _, tag := range doc.Tags {
+		tags = append(tags, tag.Name)
+	}
+
+	prompt := fmt.Sprintf(`请将以下文章内容提取为纯 JSON，返回一个对象。字段包括：
+- title：文章标题
+- summary：文章摘要
+- author：作者
+- source：来源
+- published_at：发布时间（ISO 8601）
+- tags：标签数组
+- keywords：关键词数组
+- main_points：主要结论或要点数组
+- entities：抽取出的实体或专有名词数组
+- sentiment：情绪倾向（positive/neutral/negative）
+
+请不要输出任何额外说明文本，只输出 JSON。文章标题：%s
+文章摘要：%s
+文章标签：%v
+文章内容：%s`, doc.Title, doc.Summary, tags, doc.Content)
+
+	result, err := utils.ExtractWithDeepseek(prompt)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   "Failed to extract document information",
+			"details": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"data": result,
+	})
+}
+
 // GetTags 获取所有标签接口
 func GetTags(c *gin.Context) {
 	var tags []models.Tag
